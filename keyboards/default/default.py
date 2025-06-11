@@ -29,4 +29,4 @@ def main_menu(lang):
         )
     }
 
-    return kb.get(lang, kb['uz']) 
+    return kb.get(lang, kb['uz'])

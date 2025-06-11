@@ -15,8 +15,20 @@ def create_table():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS rooms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            roomname TEXT,
+            user_id INTEGER,
+            invitation_link TEXT DEFAULT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )
+    """)
+
+
     conn.commit()
     conn.close()
 
-# Funksiyani chaqiramiz
+
 create_table()
+

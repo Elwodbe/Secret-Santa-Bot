@@ -37,17 +37,17 @@ async def add_user_to_database(callback: types.CallbackQuery):
     fullname = callback.from_user.full_name
     user_id = callback.from_user.id
 
-    # Foydalanuvchini bazaga qo‘shish
+   
     add_user(user_id=user_id, username=username, fullname=fullname, language=lang)
 
-    # Xush kelibsiz xabari
+   
     welcome_msg = {
         'uz': f"<b>Assalomu aleykum {fullname}.</b>\n\n<i>Botimizga xush kelibsiz!</i>",
         'ru': f"<b>Здравствуйте, {fullname}.</b>\n\n<i>Добро пожаловать в нашего бота!</i>",
         'en': f"<b>Hello, {fullname}.</b>\n\n<i>Welcome to our bot!</i>"
     }
 
-    # Menyu sarlavhasi
+    
     menu_msg = {
         "uz": "Bosh menyu",
         "ru": "Главное меню",
