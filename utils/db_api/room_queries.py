@@ -24,3 +24,27 @@ def create_room(room_name, user_id):
 
     conn.close()
     return room_info
+
+def get_room_info(room_id):
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT rooms.id, rooms.roomname, users.username, users.fullname
+        FROM rooms
+        JOIN users ON rooms.user_id = users.user_id
+        WHERE rooms.id = ?
+    """, (room_id,))
+
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        return {
+            "room_id": result[0],
+            "room_name": result[1],
+            "creator_username": result[2],
+            "creator_fullname": result[3]
+        }
+    else:
+        return None
