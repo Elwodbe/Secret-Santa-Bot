@@ -1,7 +1,7 @@
 from aiogram import types, Router
 from aiogram.filters import Command
 from utils.db_api.user_query import check_user, add_user, get_user_language
-from utils.db_api.room_queries import get_room_info
+from utils.db_api.room_queries import get_room_info,add_user_room,is_user_in_room
 from keyboards.inline.language import language_button
 from keyboards.default.default import main_menu
 from aiogram.fsm.context import FSMContext
@@ -33,12 +33,23 @@ async def bot_start(message: types.Message, state: FSMContext):
         username = message.from_user.username
         fullname = message.from_user.full_name
         add_user(user_id=user_id, username=username, fullname=fullname, language=lang)
+        if is_user_in_room(room_id=args, user_id=user_id):
+            msg_info = {
+                'uz': "⚠️ <b>Siz allaqachon ushbu xonaga qo‘shilgansiz!</b>\n"
+                    "⏳ <i>Iltimos, o‘yin boshlanishini kuting.</i>",
 
-        result = get_room_info(args)
-        if not result:
-            await message.answer("❌ Bunday xona topilmadi.")
+                'ru': "⚠️ <b>Вы уже присоединились к этой комнате!</b>\n"
+                    "⏳ <i>Пожалуйста, дождитесь начала игры.</i>",
+
+                'en': "⚠️ <b>You have already joined this room!</b>\n"
+                    "⏳ <i>Please wait for the game to start.</i>"
+            }
+            await message.answer(text=msg_info.get(lang, msg_info["uz"]))
             return
 
+
+
+        result = get_room_info(args)
         room_name = result['room_name']
         creator_username = result['creator_username']
         creator_fullname = result['creator_fullname']
@@ -106,6 +117,61 @@ async def get_fullname_tojoin_room(message: types.Message, state: FSMContext):
     )
     lang = get_user_language(message.from_user.id)
     await message.answer(msg.get(lang, msg['uz']), reply_markup=kb)
+    await state.set_state(RoomJoiningState.gender)
+
+@router.callback_query(lambda call: call.data.startswith("room_joining_kb"), RoomJoiningState.gender)
+async def get_gender_tojoin_room(callback: types.CallbackQuery,state:FSMContext):
+    await callback.message.edit_text(text=f"<b>{callback.message.text}</b>")
+    user_id = callback.from_user.id
+    lang = get_user_language(user_id)
+    gender = callback.data.split('_')[3]
+    await state.update_data(gender = gender)
+    msg = {
+        'uz': "📝 <b>O'zingiz haqingizda qisqacha yozing:</b>\n"
+            "<i>Masalan:</i> 🎯 qiziqishlaringiz, 🎨 hobbylaringiz, 🍫 nimalarni yoqtirishingiz.\n"
+            "🎁 Sizga sovg'a olmoqchi bo‘lgan odamga bu ma'lumot yordam beradi!",
+        
+        'ru': "📝 <b>Напишите немного о себе:</b>\n"
+            "<i>Например:</i> 🎯 ваши интересы, 🎨 хобби, 🍫 что вам нравится.\n"
+            "🎁 Это поможет человеку выбрать для вас подходящий подарок!",
+
+        'en': "📝 <b>Write a bit about yourself:</b>\n"
+            "<i>For example:</i> 🎯 your interests, 🎨 hobbies, 🍫 things you like.\n"
+            "🎁 This will help your Secret Santa choose the right gift for you!"
+    }
+
+    await callback.message.answer(msg.get(lang, msg["uz"]))
+    await state.set_state(RoomJoiningState.about_user)
+
+@router.message(RoomJoiningState.about_user)
+async def get_aboutuser_tojoin_room(message: types.Message, state: FSMContext):
+    result = await state.get_data()
+    lang = get_user_language(message.from_user.id)
+
+    add_user_room(
+        room_id=result["room_id"],
+        user_id=message.from_user.id,
+        gender=result['gender'],
+        fullname=result['fullname'],
+        username=message.from_user.username,
+        about_user= message.text
+    )
+
+    msg = {
+        'uz': "✅ <b>Siz muvaffaqiyatli xonaga qo‘shildingiz!</b>\n"
+            "🎮 O‘yin boshlanganda, bot sizga avtomatik xabar yuboradi!",
+
+        'ru': "✅ <b>Вы успешно присоединились к комнате!</b>\n"
+            "🎮 Когда игра начнётся, бот автоматически отправит вам сообщение.",
+
+        'en': "✅ <b>You have successfully joined the room!</b>\n"
+            "🎮 When the game starts, the bot will automatically notify you."
+    }
+    await message.answer(msg.get(lang, msg["uz"]))
+    await state.clear()
+
+
+
 
 
 @router.message(lambda message: message.text in ["🌍Til sozlamalari", "🌍Настройки языка", "🌍Language Settings"])

@@ -48,3 +48,31 @@ def get_room_info(room_id):
         }
     else:
         return None
+
+
+def add_user_room(room_id, user_id, gender, fullname, username, about_user):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO room_users (room_id, user_id, gender, fullname, username, about_user)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (room_id, user_id, gender, fullname, username, about_user))
+
+    conn.commit()
+    conn.close()
+
+def is_user_in_room(room_id, user_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 1 FROM room_users
+        WHERE room_id = ? AND user_id = ?
+        LIMIT 1
+    """, (room_id, user_id))
+
+    result = cursor.fetchone()
+
+    conn.close()
+    return result is not None
