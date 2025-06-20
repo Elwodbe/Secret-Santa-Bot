@@ -5,6 +5,7 @@ import asyncio
 from handlers.users.start import router
 from handlers.users.help import router as help_router
 from handlers.users.create_room import router as create_room_router
+from handlers.users.my_room import router as my_room_router
 from utils.db_api.create import create_table
 
 
@@ -15,6 +16,7 @@ async def main():
     dp.include_router(router)
     dp.include_router(help_router)
     dp.include_router(create_room_router)
+    dp.include_router(my_room_router)
     create_table()
 
 

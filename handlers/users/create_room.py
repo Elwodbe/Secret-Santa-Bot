@@ -59,6 +59,7 @@ async def create_room_db(message:types.Message, state: FSMContext):
          'ru': "🤝 Поделиться с друзьями",
          'en': "🤝 Share with friends"   
     }
+    await state.clear()
 
     text_switch_inline = {
         'uz': f"📎 {room_name} xonasiga qo‘shiling: {invitation_link} 🎁 Secret Friend o‘yinida ishtirok eting!",

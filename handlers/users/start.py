@@ -119,6 +119,7 @@ async def get_fullname_tojoin_room(message: types.Message, state: FSMContext):
     await message.answer(msg.get(lang, msg['uz']), reply_markup=kb)
     await state.set_state(RoomJoiningState.gender)
 
+
 @router.callback_query(lambda call: call.data.startswith("room_joining_kb"), RoomJoiningState.gender)
 async def get_gender_tojoin_room(callback: types.CallbackQuery,state:FSMContext):
     await callback.message.edit_text(text=f"<b>{callback.message.text}</b>")
